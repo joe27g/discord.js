@@ -1,5 +1,18 @@
 const { ActivityFlags, Endpoints } = require('../util/Constants');
 
+class StatusEmoji {
+    constructor(data, client) {
+        Object.defineProperty(this, 'client', { value: client });
+        this.name = data.name;
+        this.id = data.id;
+        this.animated = data.animated;
+    }
+    toString() {
+        if (this.id && !this.client.emojis.get(this.id)) return '';
+        return this.id ? `<${this.animated ? 'a' : ''}:${this.name}:${this.id}>` : this.name;
+    }
+}
+
 /**
  * The status of this presence:
  *
@@ -31,10 +44,10 @@ class Presence {
 
     /**
      * The devices this presence is on
-     * @type {?object}
-     * @property {PresenceStatus} web
-     * @property {PresenceStatus} mobile
-     * @property {PresenceStatus} desktop
+     * @type {?Object}
+     * @property {?ClientPresenceStatus} web The current presence in the web application
+     * @property {?ClientPresenceStatus} mobile The current presence in the mobile application
+     * @property {?ClientPresenceStatus} desktop The current presence in the desktop application
      */
     this.clientStatus = data.client_status || null;
   }
@@ -136,6 +149,12 @@ class Game {
 
     this.syncID = data.sync_id;
     this._flags = data.flags;
+
+    /**
+     * Emoji associated with this activity
+     * @type {?StatusEmoji}
+     */
+    this.emoji = data.emoji ? new StatusEmoji(data.emoji, this.presence.client) : null;
   }
 
   get flags() {
@@ -238,4 +257,5 @@ class RichPresenceAssets {
 
 exports.Presence = Presence;
 exports.Game = Game;
+exports.StatusEmoji = StatusEmoji;
 exports.RichPresenceAssets = RichPresenceAssets;
